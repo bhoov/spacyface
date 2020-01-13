@@ -1,0 +1,6 @@
+# Emacs specific
+*~
+.*~
+
+# Python
+__pycache__
