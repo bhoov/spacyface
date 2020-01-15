@@ -1,0 +1,10 @@
+name: spacyface
+channels:
+  - conda-forge
+dependencies:
+  - jupyter
+  - jupyter_client
+  - jupyter_console
+  - jupyter_contrib_core
+  - jupyter_contrib_nbextensions
+  - matplotlib

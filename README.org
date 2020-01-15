@@ -1,9 +1,12 @@
 * Outline
-- Spacy & Huggingface?
-- Currently supports English and (following huggingface modules)
-- Simple test requirement
 - Getting started
+- Which huggingface models are supported
+- Simple test requirement
 
+* Getting started
+1. From the root of this project, create a new conda directory with =conda env create -f environment.yml=. This will create an environment named =spacyface=.
+2. Activate this environment with =conda activate spacyface=. At this point, if you want to install the development dependencies, you can do so with =conda env update -f environment-dev.yml=
+3. You will need to install spacy's =en_core_web_sm= as well. To do this, run: =python -m spacy download en_core_web_sm=
 * Spacyface aligner
 [[https://spacy.io/][Spacy]] is a fantastic python library for extracting linguistic information about word tokens in a block of text, and the team has painstakingly created special rules to handle the many exceptions in the English language.
 
@@ -11,6 +14,22 @@
 
 This repository aims to combine the language understanding of Spacy's tokenization schemes with the tokenization schemes of the different implementation of the models in Huggingface.
 
-Originally created to ease the development of [[http://exbert.net/][exbert]], these tools have been made available for others to use in their own projects as they see fit.
+Originally created to ease the development of [[http://exbert.net/][exBERT]], these tools have been made available for others to use in their own projects as they see fit.
 
-Currently, the repository only supports the English language.
+Currently, the repository only supports the English language and the following huggingface pretrained models:
+
+- Bert
+- GPT2 (covers distilroberta)
+- Roberta
+- DistilBert
+
+
+* Architecture
+In order to align the different tokenizers, the following flow occurs:
+
+1. *prep_sentence(s:str)* - This method processes a sentence into a new form such that both Spacy and the transformer's tokenizer will output the same tokens.
+
+For instance,
+
+* Testing the aligner
+The
