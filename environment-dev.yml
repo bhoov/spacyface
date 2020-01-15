@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - jupyter
+  - pytest
   - jupyter_client
   - jupyter_console
   - jupyter_contrib_core

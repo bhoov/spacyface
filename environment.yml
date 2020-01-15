@@ -10,8 +10,8 @@ dependencies:
   - h5py
   - spacy
   - regex
-  - numpy=1.16.2
-  - pytorch=1.0.1
+  - numpy
+  - pytorch
   - sacremoses
   - pip:
     - sentencepiece
