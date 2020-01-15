@@ -1,7 +1,7 @@
+from typing import List, Iterable, Union
 import spacy
 from spacy.tokens.token import Token as SpacyToken
 from spacy.tokens.doc import Doc as SpacyDoc
-from typing import List, Iterable, Union
 import regex as re
 
 from transformers import (
@@ -11,8 +11,8 @@ from transformers import (
     DistilBertTokenizer,
 )
 
-from aligner.simple_spacy_token import SimpleSpacyToken
-from utils.f import flatten_, assoc, memoize, GetAttr, delegates, pick
+from simple_spacy_token import SimpleSpacyToken
+from utils.f import flatten_, assoc, delegates
 
 def doc_to_fixed_tokens(doc: SpacyDoc) -> List[str]:
     """Fix the tokens in a document to not have exceptions"""
