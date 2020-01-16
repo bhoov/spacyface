@@ -1,20 +1,13 @@
-* Outline
-- Getting started
-- Which huggingface models are supported
-- Simple test requirement
-
-* Getting started
-1. From the root of this project, create a new conda directory with =conda env create -f environment.yml=. This will create an environment named =spacyface=.
-2. Activate this environment with =conda activate spacyface=. At this point, if you want to install the development dependencies, you can do so with =conda env update -f environment-dev.yml=
-3. You will need to install spacy's =en_core_web_sm= as well. To do this, run: =python -m spacy download en_core_web_smo=
 * Spacyface aligner
-[[https://spacy.io/][Spacy]] is a fantastic python library for extracting linguistic information about word tokens in a block of text, and the team has painstakingly created special rules to handle the many exceptions in the English language.
 
-[[https://github.com/huggingface][Huggingface]] makes transformer networks in both tensorflow and pytorch accessible to a broader audience and makes development easier with a unified API across different models.
+This repository enables the strange and varied tokenizations belonging to different Huggingface Transformer models to be correctly annotated with the metadata returned by [[https://spacy.io/][Spacy's]] tokenization.
 
-This repository aims to combine the language understanding of Spacy's tokenization schemes with the tokenization schemes of the different implementation of the models in Huggingface.
+** Background
+Different transformer models use different tokenizations. At the time of this writing, many these tokenizations split larger English words into smaller tokens and use different methods of indicating that a token was once part of a larger word.
 
-Originally created to ease the development of [[http://exbert.net/][exBERT]], these tools have been made available for others to use in their own projects as they see fit.
+For inspection and research, it is helpful to align these tokenizations with the linguistic features of the original words of the sentence. [[https://spacy.io/][Spacy]] is a fantastic python library for assigning linguistic features (e.g., dependencies, parts of speech, tags, exceptions) to the words of different languages, but its method for tokenizing is vastly different from the tokenization schemes that typically operate on the sub-word and sometimes byte level. This repository aims to align Spacy tokens with the sub-word tokens needed for training and inference of the different [[https://github.com/huggingface][Huggingface Transformer]] models.
+
+In short, *this repository enables the strange and varied tokenizations belonging to different transformer models to be correctly annotated with the metadata returned by Spacy's tokenization.
 
 Currently, the repository only supports the English language and the following huggingface pretrained models:
 
@@ -23,13 +16,23 @@ Currently, the repository only supports the English language and the following h
 - Roberta
 - DistilBert
 
+Originally created to ease the development of [[http://exbert.net/][exBERT]], these tools have been made available for others to use in
+their own projects as they see fit.
 
-* Architecture
-In order to align the different tokenizers, the following flow occurs:
+* Getting started
+1. From the root of this project, create a new conda directory with =conda env create -f environment.yml=. This will create an environment named =spacyface=.
+2. Activate this environment with =conda activate spacyface=. At this point, if you want to install the development dependencies, you can do so with =conda env update -f environment-dev.yml=
+3. You will need to install spacy's =en_core_web_sm= as well. To do this, run: =python -m spacy download en_core_web_smo=
 
-1. *prep_sentence(s:str)* - This method processes a sentence into a new form such that both Spacy and the transformer's tokenizer will output the same tokens.
-
-For instance,
 
 * Testing the aligner
-The
+A few edge case sentences that include hardcoded exceptions to the English language as well as strange punctuation have been included in [[./aligner/tests/EN_TEST_SENTS.py=][EN_TEST_SENTS.py]]. You can run these tests on the established aligners with =python -m pytest=. WARNING: If this is your first time using any of these models on your computer, the script will download these pretrained models from the internet.
+
+* Notable exceptions
+It is difficult to align such completely different tokenization scehmes. Namely, there are a few strange behaviors that, while not desired, are intentional to create a simplified methods to aligned different tokenization schemes. These behaviors are listed below.
+
+- Multiple consecutive spaces in a sentence are replaced with a single space.
+- The English language is riddled with exceptions to tokenization rules. Sometimes, a punctuation is included in the middle of what is a single token (e.g., "Mr." or "N.Y."). Other times, contractions that look nothing like the words it combines (e.g., "ain't" looks nothing like "is not" or "am not" or "are not") create difficulties for aligning. To prevent these from being an issue, this repository replaces the exceptions to the language with their original "normalized" representations.
+
+Specific to GPT2
+- Sometimes, GPT2 tokenization will include a space before a punctuation mark that should not have been there. For example, the tokenization of "Hello Bob." should be =["Hello", "ĠBob", "."]=, but it is instead =["Hello", "ĠBob", "Ġ."]= This has not had any notable effects on performance, but note that it is different from the way the original model was pretrained. Hidden representations may be slightly different.
