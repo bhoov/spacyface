@@ -2,6 +2,7 @@ from typing import List, Iterable, Union
 import spacy
 from spacy.tokens.token import Token as SpacyToken
 from spacy.tokens.doc import Doc as SpacyDoc
+import torch
 import regex as re
 
 from transformers import (
@@ -149,6 +150,49 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
             """Extract tokens from a document, accounting for exceptions only if needed"""
             tokens = doc_to_fixed_tokens(doc)
             return tokens
+
+        def _maybe_conv_to_token(self, tok_or_str:Union[str, SimpleSpacyToken]):
+            """Convert a token to a SimpleSpacy token if a string. Otherwise, return input unmodified
+
+            Args:
+                tok_or_str: The token be analyzed
+
+            Returns:
+                SimpleSpacyToken. If input was a string, it has been converted to this class.
+            """
+
+            if isinstance(tok_or_str, SimpleSpacyToken):
+                return tok_or_str
+            return SimpleSpacyToken(self.convert_ids_to_tokens([tok_or_str])[0])
+
+        def sentence_to_input(self, sentence:str):
+            """Convert sentence to the input needed for a huggingface model
+
+            Args:
+                sentence: Sentence to prepare to send into the model
+
+            Returns:
+                Tuple of (object that can be directly passed into the model, modified meta tokens)
+
+            Examples:
+
+                >>> alnr = RobertaAligner.from_pretrained('roberta-base')
+                >>> model = AutoModel.from_pretrained('roberta-base', output_attentions=True)
+                >>> model.eval() # Remove DropOut effect
+                >>> model_input, meta_info = alnr.sentence_to_input(sentence)
+                >>> last_layer_hidden_state, pooler, atts = model(**model_input)
+            """
+
+            meta_tokens = self.meta_tokenize(sentence)
+            tokens = [tok.token for tok in meta_tokens]
+            ids = self.convert_tokens_to_ids(tokens)
+            raw_model_input = self.prepare_for_model(ids, add_special_tokens=True)
+            model_input = {k: torch.tensor(v).unsqueeze(0) for k,v in raw_model_input.items() if isinstance(v, List)}
+
+            meta_input = self.prepare_for_model(meta_tokens)['input_ids']
+            new_meta = list(map(self._maybe_conv_to_token, meta_input))
+
+            return model_input, new_meta
 
     return Aligner
 
