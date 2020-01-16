@@ -80,6 +80,9 @@ plt.title(f"Layer {layer} for head(s): {heads}\n\"{sentence}\"")
 [[./img/SampleHeatmap.png]]
 
 
+Interestingly, we have discovered that Layer 8, head 7 has a strong affinity for a POBJ (Object of the Preposition) looking at a PREP (Preposition). Cool! We can then test this hypothesis by running example sentences that have multiple prepositions to see if it is looking at all prepositions or just the preposition related to the object.
+
+
 * Testing the aligner
 A few edge case sentences that include hardcoded exceptions to the English language as well as strange punctuation have been included in [[./aligner/tests/EN_TEST_SENTS.py=][EN_TEST_SENTS.py]]. You can run these tests on the established aligners with =python -m pytest=. WARNING: If this is your first time using any of these models on your computer, the script will download these pretrained models from the internet.
 
