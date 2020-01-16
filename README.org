@@ -33,7 +33,7 @@ from aligner import BertAligner
 alnr = BertAligner.from_pretrained("bert-base-cased")
 sentence = "Do you know why they call me the Count? Because I love to count! Ah-hah-hah!"
 tokens = alnr.meta_tokenize(sentence)
-print("Tokens:\n\n", [(tok.token, tok.pos) for tok in alnr.meta_tokenize(sentence)])
+print("Tokens:\n\n", [(tok.token, tok.pos) for tok in tokens])
 #+END_SRC
 
 #+BEGIN_SRC
@@ -41,6 +41,7 @@ Tokens:
 
    [('Do', 'AUX'), ('you', 'PRON'), ('know', 'VERB'), ('why', 'ADV'), ('they', 'PRON'), ('call', 'VERB'), ('me', 'PRON'), ('the', 'DET'), ('Count', 'PROPN'), ('?', 'PUNCT'), ('Because', 'SCONJ'), ('I', 'PRON'), ('love', 'VERB'), ('to', 'PART'), ('count', 'VERB'), ('!', 'PUNCT'), ('Ah', 'INTJ'), ('-', 'PUNCT'), ('ha', 'X'), ('##h', 'X'), ('-', 'PUNCT'), ('ha', 'NOUN'), ('##h', 'NOUN'), ('!', 'PUNCT')]
 #+END_SRC
+
 * Testing the aligner
 A few edge case sentences that include hardcoded exceptions to the English language as well as strange punctuation have been included in [[./aligner/tests/EN_TEST_SENTS.py=][EN_TEST_SENTS.py]]. You can run these tests on the established aligners with =python -m pytest=. WARNING: If this is your first time using any of these models on your computer, the script will download these pretrained models from the internet.
 
