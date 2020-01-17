@@ -13,3 +13,6 @@ __pycache__
 
 # For holding files
 .archive
+
+# Notebooks that are not titled
+Untitled*.ipynb
