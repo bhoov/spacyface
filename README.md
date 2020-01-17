@@ -34,7 +34,7 @@ alnr = BertAligner.from_pretrained("bert-base-cased")
 sentence = "Do you know why they call me the Count? Because I love to count! Ah-hah-hah!"
 tokens = alnr.meta_tokenize(sentence)
 print("Tokens:\n\n", [(tok.token, tok.pos) for tok in tokens])
-``` python
+```
 
 ```
 Tokens:
