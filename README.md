@@ -75,7 +75,7 @@ sn.heatmap(to_show.detach().numpy(), xticklabels=deps, yticklabels=deps)
 plt.title(f"Layer {layer} for head(s): {heads}\n\"{sentence}\"")
 ```
 
-[](./img/SampleHeatmap.png)
+![Attention heatmap Layer 8 head 7](./img/SampleHeatmap.png)
 
 Interestingly, we have discovered that Layer 8, head 7 has a strong affinity for a POBJ (Object of the Preposition) looking at a PREP (Preposition). Cool! We can then test this hypothesis by running example sentences that have multiple prepositions to see if it is looking at all prepositions or just the preposition related to the object.
 
