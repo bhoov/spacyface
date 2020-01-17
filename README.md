@@ -5,7 +5,7 @@ This repository enables the strange and varied tokenizations belonging to differ
 ## Background
 Different transformer models use different tokenizations. At the time of this writing, many these tokenizations split larger English words into smaller tokens and use different methods of indicating that a token was once part of a larger word.
 
-For inspection and research, it is helpful to align these tokenizations with the linguistic features of the original words of the sentence. [spaCy](https://spacy.io/) is a fantastic python library for assigning linguistic features (e.g., dependencies, parts of speech, tags, exceptions) to the words of different languages, but its method for tokenizing is vastly different from the tokenization schemes that typically operate on the sub-word and sometimes byte level. This repository aims to align spaCy tokens with the sub-word tokens needed for training and inference of the different [Huggingface Transformer](https://github.com/huggingface) models.
+For inspection and research, it is helpful to align these tokenizations with the linguistic features of the original words of the sentence. [spaCy](https://spacy.io/) is a fantastic python library for assigning linguistic features (e.g., dependencies, parts of speech, tags, exceptions) to the words of different languages, but its method for tokenizing is vastly different from the tokenization schemes that typically operate on the sub-word and sometimes byte level. This repository aims to align spaCy tokens with the sub-word tokens needed for training and inference of the different [Huggingface Transformer](https://github.com/huggingface/transformers) models.
 
 In short, *this repository enables the strange and varied tokenizations belonging to different transformer models to be correctly annotated with the metadata returned by spaCy's tokenization.*
 
@@ -81,7 +81,7 @@ Interestingly, we have discovered that Layer 8, head 7 has a strong affinity for
 
 
 ## Testing the aligner
-A few edge case sentences that include hardcoded exceptions to the English language as well as strange punctuation have been included in [EN_TEST_SENTS.py](./aligner/tests/EN_TEST_SENTS.py). You can run these tests on the established aligners with `python -m pytest`. WARNING: If this is your first time using any of these models on your computer, the script will download these pretrained models from the internet.
+A few edge case sentences that include hardcoded exceptions to the English language as well as strange punctuation have been included in [EN_TEST_SENTS.py](./tests/EN_TEST_SENTS.py). You can run these tests on the established aligners with `python -m pytest`. WARNING: If this is your first time using any of these models on your computer, the script will download these pretrained models from the internet.
 
 ## Notable Behavior and Exceptions
 This repository makes the large assumption that there is no English "word" which is smaller than a token needed for a transformer model. This is an accurate assumption for most of the published transformer models.
