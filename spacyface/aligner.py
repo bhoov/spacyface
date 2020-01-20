@@ -10,6 +10,16 @@ from transformers import (
     GPT2Tokenizer,
     RobertaTokenizer,
     DistilBertTokenizer,
+    TransfoXLTokenizer,
+    XLNetTokenizer,
+    XLMTokenizer,
+    AlbertTokenizer,
+    CTRLTokenizer,
+    T5Tokenizer,
+    XLMRobertaTokenizer,
+    OpenAIGPTTokenizer,
+    XLMRobertaTokenizer,
+    AutoTokenizer,
 )
 
 from .simple_spacy_token import SimpleSpacyToken
@@ -17,11 +27,23 @@ from .utils.f import flatten_, assoc, delegates
 
 def doc_to_fixed_tokens(doc: SpacyDoc) -> List[str]:
     """Fix the tokens in a document to not have exceptions"""
-    return [fix_token(t, i) for i, t in enumerate(doc)]
+    return [fix_token(t) for t in doc]
 
-def fix_token(tok: SpacyToken, idx:int=-1) -> str:
-    """Determine whether a token should be represented by its text or its norm"""
+def fix_token(tok: SpacyToken) -> str:
+    """Determine whether a token should be represented by its text or its norm
+
+    This works to fix most instances EXCEPT when an exception is part of a word with a '-' in it.
+    For example, "whatve-you-done" would produce two different tokenizations:
+
+    >>> alnr = BertAligner.from_pretrained('bert-base-uncased')
+    >>> s = "whatve-you-dont"
+    >>> alnr.tokenize(s) # => ['what', '##ve', '-', 'you', '-', 'don', '##t']
+    >>> [t.token for t in alnr.meta_tokenize(s)] # => ['what', 'have', '-', 'you', '-', 'do', 'not']
+
+    In practice, this situation occurs so rarely that it is often not a problem for real sentences to analyze.
+    """
     out = tok.text if tok.text.lower() == tok.norm_ else tok.norm_
+
     return out
 
 def MakeAligner(pretrained_tokenizer, spacy_language_model):
@@ -34,12 +56,12 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
         @delegates(pretrained_tokenizer.__init__)
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            self.nlp = spacy.load(spacy_language_model)
+            self.spacy_nlp = spacy.load(spacy_language_model)
             self.meta_container = SimpleSpacyToken
 
         def prep_sentence(self, s: str) -> str:
             """Remove contractions and multiple spaces from input sentence"""
-            s = re.sub(r"\s+", r" ", s)
+            s = re.sub(r"\s+", r" ", s).strip()
             out = " ".join(self._to_normed_spacy(s))
             return out
 
@@ -54,7 +76,7 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
             Due to implementation differences, does not provide the exact same API as the
             PreTrainedTokenizer's `tokenize` function
             """
-            meta_info = self._to_spacy_meta(s)
+            meta_info = self._to_spacy_meta(self.prep_sentence(s))
             return self._tokenize_from_spacy_meta(meta_info)
 
         def meta_from_tokens(self, sentence: str, tokens: List[str], perform_check=True) -> List[SimpleSpacyToken]:
@@ -92,13 +114,13 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
 
         def _to_normed_spacy(self, s: str) -> List[str]:
             """Return the normalized tokens (i.e., language exceptions replaced by a lowercased version)"""
-            doc = self.nlp(s)
+            doc = self.spacy_nlp(s)
             tokens = self._doc_to_fixed_tokens(doc)
             return tokens
 
         def _to_spacy_meta(self, s: str) -> List[SimpleSpacyToken]: # list of simple spacy tokens...
             """Convert a string into a list of records containing simplified spacy information"""
-            doc = self.nlp(s)
+            doc = self.spacy_nlp(s)
             out = [self.meta_container(t) for t in doc]
             return out
 
@@ -109,7 +131,7 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
 
         def _to_raw_spacy(self, s: str) -> List[str]:
             """Return the raw spacy tokens of a string"""
-            doc = self.nlp(s)
+            doc = self.spacy_nlp(s)
             tokens = [t.text for t in doc]
             return tokens
 
@@ -194,6 +216,27 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
 
             return model_input, new_meta
 
+        def check_tokenization(self, sentence:str, hard_assert=True):
+            tokens = self.tokenize(sentence)
+            meta_tokens = self.meta_tokenize(sentence)
+            mtokens = [m.token for m in meta_tokens]
+
+            error_str = """Meta tokenization did not match expected tokenization!
+
+            EXPECTED:
+            {}
+
+            META TOKENS REPORTED:
+            {}
+
+            """
+            is_fine = mtokens == tokens
+
+            if hard_assert:
+                assert is_fine, error_str.format(tokens, mtokens)
+            else:
+                if not is_fine: print(error_str.format(tokens, mtokens))
+
     return Aligner
 
 english = "en_core_web_sm"
@@ -202,3 +245,11 @@ BertAligner = MakeAligner(BertTokenizer, english)
 GPT2Aligner = MakeAligner(GPT2Tokenizer, english)
 RobertaAligner = MakeAligner(RobertaTokenizer, english)
 DistilBertAligner = MakeAligner(DistilBertTokenizer, english)
+TransfoXLAligner = MakeAligner(TransfoXLTokenizer, english)
+XLNetAligner = MakeAligner(XLNetTokenizer, english)
+XLMAligner = MakeAligner(XLMTokenizer, english)
+CTRLAligner = MakeAligner(CTRLTokenizer, english)
+AlbertAligner = MakeAligner(AlbertTokenizer, english)
+OpenAIGPTAligner= MakeAligner(OpenAIGPTTokenizer, english)
+T5Aligner= MakeAligner(T5Tokenizer, english)
+XLMRobertaAligner= MakeAligner(XLMRobertaTokenizer, english)

@@ -15,6 +15,15 @@ Currently, the repository only supports the English language and the following h
 - GPT2 (covers distilgpt2)
 - Roberta (covers distilroberta)
 - DistilBert
+- TransfoXL
+- XLNet
+- XLM
+- Albert
+- CTRL
+- OpenAIGPT
+- XLMRoberta
+
+At the time of release, the only model that doesn't work with the alignment is the T5 Tokenization scheme.
 
 Originally created to ease the development of [exBERT](http://exbert.net/), these tools have been made available for others to use in their own projects as they see fit.
 
@@ -81,7 +90,19 @@ Interestingly, we have discovered that Layer 8, head 7 has a strong affinity for
 
 
 ## Testing the aligner
-A few edge case sentences that include hardcoded exceptions to the English language as well as strange punctuation have been included in [EN_TEST_SENTS.py](./tests/EN_TEST_SENTS.py). You can run these tests on the established aligners with `python -m pytest`. WARNING: If this is your first time using any of these models on your computer, the script will download these pretrained models from the internet.
+A few edge case sentences that include hardcoded exceptions to the English language as well as strange punctuation have been included in [EN_TEST_SENTS.py](./tests/EN_TEST_SENTS.py). You can run these tests on the established aligners with `python -m pytest` from the root folder.
+
+Sometimes, your application may not care about edge cases that are hard to detect. You can test an alignment on a more representative subset of the English language with the included [wikipedia subset](./tests/wiki.test.txt), or use your own text file corpus. To do this, run
+
+``` python
+from spacyface import TransfoXLAligner
+from spacyface.checker import check_against_corpus
+corpus = 'tests/wiki.test.txt'
+alnr = TransfoXLAligner.from_pretrained('transfo-xl-wt103')
+check_against_corpus(alnr, corpus)
+```
+
+and wait a few minutes to see if any sentences break.
 
 ## Notable Behavior and Exceptions
 This repository makes the large assumption that there is no English "word" which is smaller than a token needed for a transformer model. This is an accurate assumption for most of the published transformer models.
@@ -95,3 +116,6 @@ It is difficult to align such completely different tokenization schemes. Namely,
 
 **Specific to GPT2**
 - Sometimes, GPT2 tokenization will include a space before a punctuation mark that should not have been there. For example, the tokenization of "Hello Bob." should be `["Hello", "ĠBob", "."]`, but it is instead `["Hello", "ĠBob", "Ġ."]` This has not had any notable effects on performance, but note that it is different from the way the original model was pretrained. Hidden representations may be slightly different.
+
+### Known Issues
+- A Spacy exception that is part of a `-`-delimited word (e.g. "dont-touch-me") will cause the meta tokenization to produce a different result from the tokenization strategy. See github issues for a more detailed description of this problem.

@@ -10,6 +10,7 @@
 __pycache__
 *.egg-info
 .ipynb_checkpoints
+.pytest_cache
 
 # For holding files
 .archive
