@@ -28,6 +28,12 @@ At the time of release, the only model that doesn't work with the alignment is t
 Originally created to ease the development of [exBERT](http://exbert.net/), these tools have been made available for others to use in their own projects as they see fit.
 
 ## Getting started
+
+### Pip
+1. Run `pip install spacyface`.
+2. `python -m spacy download en_core_web_sm`
+
+### Manual (Clone and conda)
 1. From the root of this project, create a new conda directory with `conda env create -f environment.yml`. This will create an environment named `spacyface`.
 2. Activate this environment with `conda activate spacyface`. At this point, if you want to install the development dependencies, you can do so with `conda env update -f environment-dev.yml`
 3. You will need to install spacy's `en_core_web_sm` as well. To do this, run: `python -m spacy download en_core_web_smo`

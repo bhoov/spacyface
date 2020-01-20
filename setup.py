@@ -13,7 +13,7 @@ setup(
     name="spacyface",
     description="Aligner for spacy and huggingface tokenization",
     packages=['spacyface'],
-    version='0.1.5',
+    version='0.2',
     license='MIT',
     author="Ben Hoover",
     author_email="benjamin.hoover@ibm.com",
