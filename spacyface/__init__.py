@@ -15,7 +15,7 @@ from .aligner import (
 )
 
 from .simple_spacy_token import SimpleSpacyToken
-x
+
 __all__ = ["MakeAligner", "SimpleSpacyToken", "BertAligner", "GPT2Aligner", "RobertaAligner", "DistilBertAligner",
            "TransfoXLAligner", "XLNetAligner", "AlbertAligner", "XLMAligner", "AlbertAligner",
            "CTRLAligner", "OpenAIGPTAligner", "T5Aligner", "XLMRobertaAligner"]

@@ -5,13 +5,15 @@ requires = [
     'h5py>=2.10.0',
     'numpy>=1.17.4',
     'regex>=2020.1.8',
+    'spacy>=2.2.3',
+    'torch',
 ]
 
 setup(
     name="spacyface",
     description="Aligner for spacy and huggingface tokenization",
     packages=['spacyface'],
-    version='0.1.1',
+    version='0.1.3',
     license='MIT',
     author="Ben Hoover",
     author_email="benjamin.hoover@ibm.com",
