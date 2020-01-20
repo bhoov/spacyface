@@ -2,7 +2,7 @@ from spacyface import *
 import pytest
 
 def load_sample_en_sents():
-    from spacyface.checker.EN_TEST_SENTS import SPACY_EN_TEST_SENTS
+    from .EN_TEST_SENTS import SPACY_EN_TEST_SENTS
     return SPACY_EN_TEST_SENTS
 
 sentences = load_sample_en_sents()
@@ -19,8 +19,8 @@ sentences = load_sample_en_sents()
                          ('ctrl', CTRLAligner),
                          ('albert-base-v1', AlbertAligner),
                          ('openai-gpt', OpenAIGPTAligner),
-                         # ('t5-small', T5Aligner), # This does not currently work
                          ('xlm-roberta-base', XLMRobertaAligner),
+                         # ('t5-small', T5Aligner), # This does not currently work
                         ])
 def test_aligner(model_name, alnr_class):
     """NOTE: Will be obsolete when the aligner is able to work with transformer auto model"""
