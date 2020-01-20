@@ -17,3 +17,6 @@ __pycache__
 
 # Notebooks that are not titled
 Untitled*.ipynb
+
+# For distribution on pip
+dist
