@@ -18,7 +18,6 @@ setup(
     author="Ben Hoover",
     author_email="benjamin.hoover@ibm.com",
     url="https://github.com/bhoov/spacyface",
-    download_url = 'https://github.com/bhoov/spacyface/archive/v0.2.2.tar.gz',
     keywords=["transformer", "pytorch", "spacy", "tokenize", "tokenization", "NLP", "Natural Language Processing",
               "huggingface", "linguistic"],
     include_package_data=True,
