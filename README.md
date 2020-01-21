@@ -1,31 +1,9 @@
+
 # Spacyface aligner
 
-This repository enables the strange and varied tokenizations belonging to different Huggingface Transformer models to be correctly annotated with the metadata returned by [spaCy](https://spacy.io/) tokenization.
+Align [Huggingface Transformer](https://github.com/huggingface/transformers) model tokenizations with linguistic metadata provided by [spaCy](https://spacy.io/)!
 
-## Background
-Different transformer models use different tokenizations. At the time of this writing, many these tokenizations split larger English words into smaller tokens and use different methods of indicating that a token was once part of a larger word.
-
-For inspection and research, it is helpful to align these tokenizations with the linguistic features of the original words of the sentence. [spaCy](https://spacy.io/) is a fantastic python library for assigning linguistic features (e.g., dependencies, parts of speech, tags, exceptions) to the words of different languages, but its method for tokenizing is vastly different from the tokenization schemes that typically operate on the sub-word and sometimes byte level. This repository aims to align spaCy tokens with the sub-word tokens needed for training and inference of the different [Huggingface Transformer](https://github.com/huggingface/transformers) models.
-
-In short, *this repository enables the strange and varied tokenizations belonging to different transformer models to be correctly annotated with the metadata returned by spaCy's tokenization.*
-
-Currently, the repository only supports the English language and the following huggingface pretrained models:
-
-- Bert
-- GPT2 (covers distilgpt2)
-- Roberta (covers distilroberta)
-- DistilBert
-- TransfoXL
-- XLNet
-- XLM
-- Albert
-- CTRL
-- OpenAIGPT
-- XLMRoberta
-
-At the time of release, the only model that doesn't work with the alignment is the T5 Tokenization scheme.
-
-Originally created to ease the development of [exBERT](http://exbert.net/), these tools have been made available for others to use in their own projects as they see fit.
+*Currently only supports English tokenizations*
 
 ## Getting started
 
@@ -95,6 +73,31 @@ plt.title(f"Layer {layer} for head(s): {heads}\n\"{sentence}\"")
 Interestingly, we have discovered that Layer 8, head 7 has a strong affinity for a POBJ (Object of the Preposition) looking at a PREP (Preposition). Cool! We can then test this hypothesis by running example sentences that have multiple prepositions to see if it is looking at all prepositions or just the preposition related to the object.
 
 
+## Background
+Different transformer models use different tokenizations. At the time of this writing, many these tokenizations split larger English words into smaller tokens and use different methods of indicating that a token was once part of a larger word.
+
+For inspection and research, it is helpful to align these tokenizations with the linguistic features of the original words of the sentence. [spaCy](https://spacy.io/) is a fantastic python library for assigning linguistic features (e.g., dependencies, parts of speech, tags, exceptions) to the words of different languages, but its method for tokenizing is vastly different from the tokenization schemes that typically operate on the sub-word and sometimes byte level. This repository aims to align spaCy tokens with the sub-word tokens needed for training and inference of the different [Huggingface Transformer](https://github.com/huggingface/transformers) models.
+
+In short, *this repository enables the strange and varied tokenizations belonging to different transformer models to be correctly annotated with the metadata returned by spaCy's tokenization.*
+
+Currently, the repository only supports the English language and the following huggingface pretrained models:
+
+- Bert
+- GPT2 (covers distilgpt2)
+- Roberta (covers distilroberta)
+- DistilBert
+- TransfoXL
+- XLNet
+- XLM
+- Albert
+- CTRL
+- OpenAIGPT
+- XLMRoberta
+
+At the time of release, the only model that doesn't work with the alignment is the T5 Tokenization scheme.
+
+Originally created to ease the development of [exBERT](http://exbert.net/), these tools have been made available for others to use in their own projects as they see fit.
+
 ## Testing the aligner
 A few edge case sentences that include hardcoded exceptions to the English language as well as strange punctuation have been included in [EN_TEST_SENTS.py](./tests/EN_TEST_SENTS.py). You can run these tests on the established aligners with `python -m pytest` from the root folder.
 
@@ -125,3 +128,9 @@ It is difficult to align such completely different tokenization schemes. Namely,
 
 ### Known Issues
 - A Spacy exception that is part of a `-`-delimited word (e.g. "dont-touch-me") will cause the meta tokenization to produce a different result from the tokenization strategy. See github issues for a more detailed description of this problem.
+
+### Acknowledgements
+
+- Benjamin Hoover (IBM Research & MIT-IBM Watson AI Lab)
+- Hendrik Strobelt (IBM Research & MIT-IBM Watson AI Lab)
+- Sebastian Gehrmann (Harvard NLP)
