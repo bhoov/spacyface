@@ -42,6 +42,12 @@ This can also be extrapolated to tokenize entire English corpora with the use of
 This library also enables us to look at the attention pattern heatmaps for a particular layer and a particular head in terms of the linguistic features that belong to that layer and head.
 
 ``` python
+from transformers import AutoModel
+import torch
+import matplotlib.pyplot as plt
+import seaborn as sn
+from spacyface import RobertaAligner
+
 alnr_cls = RobertaAligner
 model_name = "roberta-base"
 sentence = "A simple sentence for the ages."
@@ -59,12 +65,13 @@ _, _, atts = model(**model_input)
 to_show = atts[layer][0][heads].mean(0)[1:-1, 1:-1] # Don't show special tokens for Roberta Model
 
 deps = [t.dep for t in meta_info[1:-1]]
-poss = [t.pos for t in meta_info[1:-1]]
 
+# Plot
 plt.figure()
 sn.set(font_scale=1.5)
 sn.heatmap(to_show.detach().numpy(), xticklabels=deps, yticklabels=deps)
 plt.title(f"Layer {layer} for head(s): {heads}\n\"{sentence}\"")
+plt.show()
 ```
 
 ![Attention heatmap Layer 8 head 7](./img/SampleHeatmap.png)
