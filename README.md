@@ -6,9 +6,8 @@ Align [Huggingface Transformer](https://github.com/huggingface/transformers) mod
 *Currently only supports English tokenizations*
 
 ## Getting started
-
 ### Pip
-1. Run `pip install spacyface`.
+1. `pip install spacyface`
 2. `python -m spacy download en_core_web_sm`
 
 ### Manual (Clone and conda)
@@ -37,7 +36,7 @@ Tokens:
 
 Because the information is coming directly from spaCy's `Token` class, any information that spaCy exposes about a token can be included in the huggingface token. The user only needs to modify the exposed attributes in the [SimpleSpacyToken](./aligners/simple_spacy_token) class.
 
-This can also be extrapolated to tokenize entire English corpora with the use of a generator. An example raw corpus representing a subset of wikipedia is included in the [[./tests]] directory.
+This can also be extrapolated to tokenize entire English corpora with the use of a generator. An example raw corpus representing a subset of wikipedia is included in the [](./tests) directory.
 
 ### Observing attention between linguistic features
 This library also enables us to look at the attention pattern heatmaps for a particular layer and a particular head in terms of the linguistic features that belong to that layer and head.
@@ -70,17 +69,16 @@ plt.title(f"Layer {layer} for head(s): {heads}\n\"{sentence}\"")
 
 ![Attention heatmap Layer 8 head 7](./img/SampleHeatmap.png)
 
-Interestingly, we have discovered that Layer 8, head 7 has a strong affinity for a POBJ (Object of the Preposition) looking at a PREP (Preposition). Cool! We can then test this hypothesis by running example sentences that have multiple prepositions to see if it is looking at all prepositions or just the preposition related to the object.
-
+Interestingly, we have discovered that Layer 8, head 7 has a strong affinity for a POBJ (Object of the Preposition) looking at a PREP (Preposition). Cool!
 
 ## Background
-Different transformer models use different tokenizations. At the time of this writing, many these tokenizations split larger English words into smaller tokens and use different methods of indicating that a token was once part of a larger word.
+Different transformer models use different tokenizations. At the time of this writing, many of these tokenizations split larger English words into smaller tokens called "wordpieces" and use different methods of indicating that a token was once part of a larger word.
 
-For inspection and research, it is helpful to align these tokenizations with the linguistic features of the original words of the sentence. [spaCy](https://spacy.io/) is a fantastic python library for assigning linguistic features (e.g., dependencies, parts of speech, tags, exceptions) to the words of different languages, but its method for tokenizing is vastly different from the tokenization schemes that typically operate on the sub-word and sometimes byte level. This repository aims to align spaCy tokens with the sub-word tokens needed for training and inference of the different [Huggingface Transformer](https://github.com/huggingface/transformers) models.
+For inspection and research, it is helpful to align these tokenizations with the linguistic features of the original words of the sentence. [spaCy](https://spacy.io/) is a fantastic python library for assigning linguistic features (e.g., dependencies, parts of speech, tags, exceptions) to the words of different languages, but its method for tokenizing is vastly different from the tokenization schemes that operate on the wordpiece level. This repository aims to align spaCy tokens with the wordpiece tokens needed for training and inference of the different [Huggingface Transformer](https://github.com/huggingface/transformers) models.
 
 In short, *this repository enables the strange and varied tokenizations belonging to different transformer models to be correctly annotated with the metadata returned by spaCy's tokenization.*
 
-Currently, the repository only supports the English language and the following huggingface pretrained models:
+Currently, the repository only supports the English language, and the following huggingface pretrained models have been tested:
 
 - Bert
 - GPT2 (covers distilgpt2)
@@ -118,19 +116,16 @@ This repository makes the large assumption that there is no English "word" which
 
 It is difficult to align such completely different tokenization schemes. Namely, there are a few strange behaviors that, while not desired, are intentional to create a simplified methods to aligned different tokenization schemes. These behaviors are listed below.
 
-- Multiple consecutive spaces in a sentence are replaced with a single space.
-- Many tokenizers insert special tokens (e.g., "[CLS]", "[SEP]", "[MASK]", "\<s\>") for certain functionalities. The metadata for all these tokens is assigned to `None`.
 - When a token exists as a part of a larger word, the linguistic information belonging to the larger word is bestowed on the token.
-- The English language is riddled with exceptions to tokenization rules. Sometimes, a punctuation is included in the middle of what is a single token (e.g., "Mr." or "N.Y."). Other times, contractions that look nothing like the words it combines (e.g., "ain't" looks nothing like "is not" or "am not" or "are not") create difficulties for aligning. To prevent these from being an issue, this repository replaces the exceptions to the language with their original "normalized" representations.
+- Multiple consecutive spaces in a sentence are replaced with a single space.
+- The English language is riddled with exceptions to tokenization rules. Sometimes, a punctuation is included in the middle of what is a single token (e.g., "Mr." or "N.Y."). Other times, contractions that look nothing like the words it combines (e.g., "ain't" looks nothing like "is not" or "am not" or "are not") create difficulties for aligning. To prevent these from being an issue, this repository replaces the exceptions to the language with their original "normalized" spacy representations.
+- Many tokenizers insert special tokens (e.g., "[CLS]", "[SEP]", "[MASK]", "\<s\>") for certain functionalities. The metadata for all these tokens is assigned to `None`.
 
 **Specific to GPT2**
-- Sometimes, GPT2 tokenization will include a space before a punctuation mark that should not have been there. For example, the tokenization of "Hello Bob." should be `["Hello", "ĠBob", "."]`, but it is instead `["Hello", "ĠBob", "Ġ."]` This has not had any notable effects on performance, but note that it is different from the way the original model was pretrained. Hidden representations may be slightly different.
+- Sometimes, GPT2 tokenization will include a space before a punctuation mark that should not have been there. For example, the tokenization of "Hello Bob." should be `["Hello", "ĠBob", "."]`, but it is instead `["Hello", "ĠBob", "Ġ."]` This has not had any notable effects on performance, but note that it is different from the way the original model was pretrained. Hidden representations may also be slightly different than expected for terminating punctuation.
 
 ### Known Issues
 - A Spacy exception that is part of a `-`-delimited word (e.g. "dont-touch-me") will cause the meta tokenization to produce a different result from the tokenization strategy. See github issues for a more detailed description of this problem.
 
 ### Acknowledgements
-
-- Benjamin Hoover (IBM Research & MIT-IBM Watson AI Lab)
-- Hendrik Strobelt (IBM Research & MIT-IBM Watson AI Lab)
-- Sebastian Gehrmann (Harvard NLP)
+- IBM Research & Harvard NLP
