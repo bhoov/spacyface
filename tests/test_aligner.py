@@ -17,7 +17,7 @@ sentences = load_sample_en_sents()
                          ('xlnet-base-cased', XLNetAligner),
                          ('xlm-mlm-en-2048', XLMAligner),
                          ('ctrl', CTRLAligner),
-                         ('albert-base-v1', AlbertAligner),
+                         ('albert-base-v2', AlbertAligner),
                          ('openai-gpt', OpenAIGPTAligner),
                          ('xlm-roberta-base', XLMRobertaAligner),
                          # ('t5-small', T5Aligner), # This does not currently work
