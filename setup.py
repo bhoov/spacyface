@@ -12,8 +12,8 @@ requires = [
 setup(
     name="spacyface",
     description="Aligner for spacy and huggingface tokenization",
-    packages=['spacyface'],
-    version='0.2.1',
+    packages=find_packages(exclude=['tests']),
+    version='0.2.2',
     license='Apache 2.0',
     author="Ben Hoover",
     author_email="benjamin.hoover@ibm.com",
