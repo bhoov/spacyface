@@ -11,9 +11,15 @@ Align [Huggingface Transformer](https://github.com/huggingface/transformers) mod
 2. `python -m spacy download en_core_web_sm`
 
 ### Manual (Clone and conda)
-1. From the root of this project, create a new conda directory with `conda env create -f environment.yml`. This will create an environment named `spacyface`.
-2. Activate this environment with `conda activate spacyface`. At this point, if you want to install the development dependencies, you can do so with `conda env update -f environment-dev.yml`
-3. You will need to install spacy's `en_core_web_sm` as well. To do this, run: `python -m spacy download en_core_web_smo`
+From the root of this project:
+
+```
+conda env create -f environment.yml
+conda activate spacyface
+# conda env update -f environment-dev.yml # OPTIONAL
+python -m spacy download en_core_web_sm
+pip install -e .
+```
 
 ## Usage
 ### Basic Usage on a sentence
