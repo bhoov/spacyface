@@ -1,4 +1,4 @@
-from typing import List, Iterable, Union
+from typing import List, Iterable, Union, Any
 import spacy
 from spacy.tokens.token import Token as SpacyToken
 from spacy.tokens.doc import Doc as SpacyDoc
@@ -187,11 +187,14 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
                 return tok_or_str
             return SimpleSpacyToken(self.convert_ids_to_tokens([tok_or_str])[0])
 
-        def sentence_to_input(self, sentence:str):
+        def sentence_to_input(self, sentence:str, **kwargs:Any):
             """Convert sentence to the input needed for a huggingface model
 
             Args:
                 sentence: Sentence to prepare to send into the model
+                **kwargs: Additional keyword arguments are passed to tokenizer.prepare_for_model.
+                    Check the following documentation applicable arguments:
+                    https://huggingface.co/docs/transformers/internal/tokenization_utils#transformers.PreTrainedTokenizerBase.prepare_for_model
 
             Returns:
                 Tuple of (object that can be directly passed into the model, modified meta tokens)
@@ -208,7 +211,8 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
             meta_tokens = self.meta_tokenize(sentence)
             tokens = [tok.token for tok in meta_tokens]
             ids = self.convert_tokens_to_ids(tokens)
-            raw_model_input = self.prepare_for_model(ids, add_special_tokens=True)
+            kwargs['add_special_tokens'] = True
+            raw_model_input = self.prepare_for_model(ids, **kwargs)
             model_input = {k: torch.tensor(v).unsqueeze(0) for k,v in raw_model_input.items() if isinstance(v, List)}
 
             meta_input = self.prepare_for_model(meta_tokens)['input_ids']
