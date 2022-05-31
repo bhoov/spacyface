@@ -1,4 +1,5 @@
-from typing import List, Iterable, Union
+from collections import defaultdict
+from typing import List, Iterable, Union, Any
 import spacy
 from spacy.tokens.token import Token as SpacyToken
 from spacy.tokens.doc import Doc as SpacyDoc
@@ -70,13 +71,17 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
             s = self.prep_sentence(s)
             return super().tokenize(s, **kwargs)
 
-        def meta_tokenize(self, s: str) -> List[SimpleSpacyToken]:
+        def meta_tokenize(self, s: Union[str, List[str]]) -> Union[List[SimpleSpacyToken], List[List[SimpleSpacyToken]]]:
             """Tokenize the sentence and return the metadata for it according to Spacy
 
             Due to implementation differences, does not provide the exact same API as the
             PreTrainedTokenizer's `tokenize` function
             """
-            meta_info = self._to_spacy_meta(self.prep_sentence(s))
+            if isinstance(s, str):
+                meta_info = self._to_spacy_meta(self.prep_sentence(s))
+            elif isinstance(s, list):
+                prepared_sentences = list(map(self.prep_sentence, s))
+                meta_info = self._to_spacy_meta(prepared_sentences)
             return self._tokenize_from_spacy_meta(meta_info)
 
         def meta_from_tokens(self, sentence: str, tokens: List[str], perform_check=True) -> List[SimpleSpacyToken]:
@@ -118,10 +123,16 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
             tokens = self._doc_to_fixed_tokens(doc)
             return tokens
 
-        def _to_spacy_meta(self, s: str) -> List[SimpleSpacyToken]: # list of simple spacy tokens...
+        def _to_spacy_meta(self, s: Union[str, List[str]]) -> List[Union[SimpleSpacyToken, List[SimpleSpacyToken]]]: # list of simple spacy tokens...
             """Convert a string into a list of records containing simplified spacy information"""
-            doc = self.spacy_nlp(s)
-            out = [self.meta_container(t) for t in doc]
+            if isinstance(s, str):
+                doc = self.spacy_nlp(s)
+                out = [self.meta_container(t) for t in doc]
+            elif isinstance(s, list):
+                doc = self.spacy_nlp.pipe(s)
+                out = [list(map(self.meta_container, sentence)) for sentence in doc]
+            else:
+                raise ValueError("Can only convert strings or lists of strings to spacy meta")
             return out
 
         @delegates(pretrained_tokenizer.tokenize)
@@ -135,10 +146,17 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
             tokens = [t.text for t in doc]
             return tokens
 
-        def _tokenize_from_spacy_meta(self, spacy_meta: List[SimpleSpacyToken]) -> List[SimpleSpacyToken]:
+        def _tokenize_from_spacy_meta(self, spacy_meta: Union[List[SimpleSpacyToken], List[List[SimpleSpacyToken]]]) -> List[SimpleSpacyToken]:
             """Convert spacy-tokenized SimpleSpacyTokens into the appropriate tokenizer's tokens"""
-            out = [self._tokenize_from_meta_single(sm, i) for i, sm in enumerate(spacy_meta)]
-            return flatten_(out)
+            if len(spacy_meta) > 0 and isinstance(spacy_meta[0], SimpleSpacyToken):
+                out = [self._tokenize_from_meta_single(sm, i) for i, sm in enumerate(spacy_meta)]
+                out = flatten_(out)
+            elif len(spacy_meta) > 0 and isinstance(spacy_meta[0], list):
+                out = [[self._tokenize_from_meta_single(sm, i) for i, sm in enumerate(spacy_meta_item)] for spacy_meta_item in spacy_meta]
+                out = [flatten_(item) for item in out]
+            else:
+                raise ValueError("spacy_meta should be either a list of SimpleSpacyTokens or a list of lists of SimpleSpacyTokens")
+            return out
 
         def _tokenize_from_meta_single(self, meta_token: SimpleSpacyToken, idx:int) -> List[SimpleSpacyToken]:
             """Split a single spacy token with metadata into tokenizer tokens.
@@ -187,11 +205,14 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
                 return tok_or_str
             return SimpleSpacyToken(self.convert_ids_to_tokens([tok_or_str])[0])
 
-        def sentence_to_input(self, sentence:str):
+        def sentence_to_input(self, sentence:str, **kwargs:Any):
             """Convert sentence to the input needed for a huggingface model
 
             Args:
                 sentence: Sentence to prepare to send into the model
+                **kwargs: Additional keyword arguments are passed to tokenizer.prepare_for_model.
+                    Check the following documentation applicable arguments:
+                    https://huggingface.co/docs/transformers/internal/tokenization_utils#transformers.PreTrainedTokenizerBase.prepare_for_model
 
             Returns:
                 Tuple of (object that can be directly passed into the model, modified meta tokens)
@@ -208,12 +229,58 @@ def MakeAligner(pretrained_tokenizer, spacy_language_model):
             meta_tokens = self.meta_tokenize(sentence)
             tokens = [tok.token for tok in meta_tokens]
             ids = self.convert_tokens_to_ids(tokens)
-            raw_model_input = self.prepare_for_model(ids, add_special_tokens=True)
+            kwargs['add_special_tokens'] = True
+            raw_model_input = self.prepare_for_model(ids, **kwargs)
             model_input = {k: torch.tensor(v).unsqueeze(0) for k,v in raw_model_input.items() if isinstance(v, List)}
 
             meta_input = self.prepare_for_model(meta_tokens)['input_ids']
             new_meta = list(map(self._maybe_conv_to_token, meta_input))
 
+            return model_input, new_meta
+
+        def sentences_to_input(self, sentences:list, **kwargs:Any):
+            """Convert sentence to the input needed for a huggingface model
+
+            Args:
+                sentence: Sentence to prepare to send into the model
+                **kwargs: Additional keyword arguments are passed to tokenizer.prepare_for_model.
+                    Check the following documentation applicable arguments:
+                    https://huggingface.co/docs/transformers/internal/tokenization_utils#transformers.PreTrainedTokenizerBase.prepare_for_model
+
+            Returns:
+                Tuple of (object that can be directly passed into the model, modified meta tokens)
+
+            Examples:
+
+                >>> alnr = RobertaAligner.from_pretrained('roberta-base')
+                >>> model = AutoModel.from_pretrained('roberta-base', output_attentions=True)
+                >>> model.eval() # Remove DropOut effect
+                >>> model_input, meta_info = alnr.sentence_to_input(sentence)
+                >>> last_layer_hidden_state, pooler, atts = model(**model_input)
+            """
+            # meta_tokenize retruns a list[lists[SimpleSpacyTokens]]
+            meta_tokens_list = self.meta_tokenize(sentences)
+            # tokens is a list[lists[str]]
+            assert isinstance(meta_tokens_list[0][0], SimpleSpacyToken), f"meta_tokens_list should be a list of lists of SimpleSpacyTokens, but got {type(meta_tokens_list[0][0])}"
+            tokens = list(map(lambda simple_tokens: [tok.token for tok in simple_tokens], meta_tokens_list))
+            # ids is a list[lists[int]]
+            ids_list = map(self.convert_tokens_to_ids, tokens)
+            kwargs['add_special_tokens'] = True
+            # raw_model_input_list is a list[dict]
+            raw_model_input_list = [self.prepare_for_model(ids, **kwargs) for ids in ids_list]
+            # model_input is a dict[list]
+            model_input = defaultdict(list)
+            for inputs in raw_model_input_list:
+                for k, v in inputs.items():
+                    if isinstance(v, list):
+                        v = torch.tensor(v).unsqueeze(0)
+                    else:
+                        raise ValueError(f'Warning: inputs items should be list, but got {type(v)}')
+                    model_input[k].append(v)
+
+            meta_input_list = [self.prepare_for_model(meta_tokens)['input_ids'] for meta_tokens in meta_tokens_list]
+            new_meta = [list(map(self._maybe_conv_to_token, meta_input)) for meta_input in meta_input_list]
+            # model_input is a dict[list], new_meta is a list[lists[SimpleSpacyTokens]]
             return model_input, new_meta
 
         def check_tokenization(self, sentence:str, hard_assert=True):
